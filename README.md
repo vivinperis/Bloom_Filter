@@ -1,4 +1,4 @@
-## Bloom_Filter
+# Bloom_Filter
 IT 251 course project - Implemented various kinds of bloom filters for authenticating username and password
 Steps: Run the main file to test the scaleable bloom filter and counting bloom filter.
 
