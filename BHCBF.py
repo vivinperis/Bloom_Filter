@@ -1,9 +1,10 @@
 import mmh3
-class varincBF:
+
+class BHCBF:
 	def __init__(self, n):
 		self.BH = [1,4,8,13] #BH sequence
 		self.m = 10000 #Size of bloom filter
-		self.k = 10 #Number of murmur functions
+		self.k = 8 #Number of murmur functions
 		self.h = 3 #BH is a valid B3 sequence
 		self.l = len(self.BH)
 		self.c1 = [0 for i in range(self.m)]  #Fixed increment BF
@@ -18,7 +19,7 @@ class varincBF:
 		sum=0
 		for i in range(self.h+1):
 			sum = sum + (self.nCr(n*self.k,i) * (((self.l-1)/(self.l*self.m))**i) * ((1 - 1/self.m)**(n*self.k - i))) 
-		print(sum)
+		#print(sum)
 		return pow((1 - sum),self.k)
 
 	def nCr(self,n,r):
@@ -37,54 +38,54 @@ class varincBF:
 		return (factn//(factr*factnr))
 
 	def getsums2(self,BH):
-		arr = [0 for i in range(0,27)] #since max sum two at a time can be 13*2=26
+		arr = [] 
 		for i in range(4):
 			for j in range(4):
-				if arr[BH[i]+BH[j]]:
-					arr[BH[i]+BH[j]]=1
+				if (BH[i]+BH[j]) not in arr:
+					arr.append(BH[i]+BH[j])
 					self.distelem2.append((BH[i],BH[j]))
 		return arr
 
 	def getsums3(self,BH):
-		arr = [0 for i in range(0,40)] #since max sum three at a time can be 13*3=39
+		arr = [] 
 		for i in range(4):
 			for j in range(4):
 				for k in range(4):
-					if arr[(BH[i]+BH[j]+BH[k])]:
-						arr[BH[i]+BH[j]+BH[k]]=1
+					if (BH[i]+BH[j]+BH[k]) not in arr:
+						arr.append(BH[i]+BH[j]+BH[k])
 						self.distelem3.append((BH[i],BH[j],BH[k]))
 		return arr
 
 	def insert(self,elem):
 		for i in range(self.k):
-			digest = mmh3.murmur(elem,i) % self.m//self.k + (self.m//self.k)*i
-			print(digest)
-			self.c1[digest] = self.c1[digest] + 1
-			digest1 = mmh3.murmur(elem,i) % 4
-			self.c2[digest] = self.c2[digest] + self.BH[digest1]
+			hashv = (mmh3.murmur(elem,i) % self.m)//self.k + (self.m//self.k)*i
+			#print(hashv)
+			self.c1[hashv] = self.c1[hashv] + 1
+			hashv1 = mmh3.murmur(elem,i) % 4
+			self.c2[hashv] = self.c2[hashv] + self.BH[hashv1]
 
 	def query(self,elem):
 		for i in range(self.k):
-			digest = mmh3.murmur(elem,i) % self.m//self.k + (self.m//self.k)*i
-			digest1 = mmh3.murmur(elem,i) % 4
-			if self.c1[digest] == 0:
+			hashv = (mmh3.murmur(elem,i) % self.m)//self.k + (self.m//self.k)*i
+			hashv1 = mmh3.murmur(elem,i) % 4
+			if self.c1[hashv] == 0:
 				return False
-			if self.c1[digest] >= 4:
+			if self.c1[hashv] >= 4:
 				return True
-			if self.c1[digest] == 3:
-				t = self.distinct_sum3.index(self.c2[digest])
+			if self.c1[hashv] == 3:
+				t = self.distinct_sum3.index(self.c2[hashv])
 				for j in self.dis_elem3[t]:
-					if j == self.BH[digest1]:
+					if j == self.BH[hashv1]:
 						return True
 				return False
-			if self.c1[digest] == 1:
-				if self.c2[digest] == self.BH[digest1]:
+			if self.c1[hashv] == 1:
+				if self.c2[hashv] == self.BH[hashv1]:
 					return True
 				return False
-			if self.c1[digest] == 2:
-				t = self.distinct_sum2.index(self.c2[digest])
+			if self.c1[hashv] == 2:
+				t = self.distinct_sum2.index(self.c2[hashv])
 				for j in self.dis_elem2[t]:
-					if j == self.BH[digest1]:
+					if j == self.BH[hashv1]:
 						return True
 				return False
 
@@ -92,13 +93,20 @@ class varincBF:
 		if not self.query(elem):
 			return
 		for i in range(self.k):
-			digest = mmh3.murmur(elem,i) % self.m//self.k + (self.m//self.k)*i
-			self.c1[digest] = self.c1[digest] - 1
-			digest1 = mmh3.murmur(elem,i) % 4
-			self.c2[digest] = self.c2[digest] - self.BH[digest1]
+			hashv = mmh3.murmur(elem,i) % self.m//self.k + (self.m//self.k)*i
+			self.c1[hashv] = self.c1[hashv] - 1
+			hashv1 = mmh3.murmur(elem,i) % 4
+			self.c2[hashv] = self.c2[hashv] - self.BH[hashv1]
 
-v=varincBF(100)
-print(v.false_positive_rate(0))
-v.nCr(6,2)
-v.insert("Vivin")
-print(v.query("Vivin"))
+def main():
+
+	v=BHCBF(100)
+	v.insert("Vivin")
+	print(v.query("Vivin"))
+	for i in range(0,100):
+		v.insert(str(i))
+		
+
+
+if __name__ == "__main__":
+	main()

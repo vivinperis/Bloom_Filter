@@ -1,6 +1,6 @@
 import mmh3 as mmh3
 import math,time
-from Bloomfilter import Bitarray,BloomFilter
+from BloomFilter import Bitvector,BloomFilter
 class ScalableBF:
 	def __init__(self,p):
 		self.fp = p
@@ -18,12 +18,19 @@ class ScalableBF:
 	def query(self,ele):
 		for i in range(len(self.SBF)-1 , -1 , -1):
 			if self.SBF[i].query(ele):
-				print("Present in BF#",i)
+				print("Present in BF",i)
+				return True
 			else:
-				print("Absent in BF#",i)
+				print("Absent in BF",i)
+		return False
 			
 
-scaleBF = ScalableBF(0.1)
-for i in range(12000):
-	scaleBF.insert(str(i))
-scaleBF.query("0")
+def main():
+
+	scaleBF = ScalableBF(0.1)
+	for i in range(12000):
+		scaleBF.insert(str(i))
+	scaleBF.query("0")
+
+if __name__ == "__main__":
+	main()
